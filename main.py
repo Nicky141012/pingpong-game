@@ -1,7 +1,6 @@
 from pygame import *
 import pygame
 import random
-
 pygame.init()
 win_width = 700
 win_height = 500
@@ -122,6 +121,7 @@ player_2_speed_timer = 0
 ball_size_timer = 0
 ball_original_size = 50
 ball_new_size = 50
+effect_run_one = False
 
 while game:
     for e in event.get():
@@ -171,7 +171,7 @@ while game:
             ball_speedx *= -1
 
         # Pass through score
-        if ball.rect.x > player_2.rect.x + player_2.rect.width: # pass right player
+        if ball.rect.x >= win_width - ball.rect.width: # pass right player
             player_1.score += 1
             ball.rect.x = 200
             ball.rect.y = 200
@@ -190,16 +190,20 @@ while game:
         if mystery_box_active and mystery_box_rect.collidepoint(ball_center):
             mystery_box_active = False
             mystery_box_triggered = True
-            mystery_box_effect = random.choice(["speed", "disappear", "meme", "reverse_controls_1", "reverse_controls_2", "speed_up_1","speed_up_2", "ball_size"])
+            mystery_box_effect = random.choice(["speed", "speed_up_1","speed_up_2"])
+            print(mystery_box_effect)
             effect_timer = effect_duration
             original_ball_speed_x = ball_speedx
             original_ball_speed_y = ball_speedy
+            effect_run_one = True
 
         # Apply mystery box effect
         if mystery_box_triggered and effect_timer > 0:
             if mystery_box_effect == "speed":
-                ball_speedx *= 1.5
-                ball_speedy *= 1.5
+                if effect_run_one:
+                    ball_speedx *= 2
+                    ball_speedy *= 2
+                    effect_run_one = False
             elif mystery_box_effect == "disappear":
                 player_1.rect.width = 0
                 player_2.rect.width = 0
@@ -210,11 +214,15 @@ while game:
                 player_2.reverse_controls = True
                 reverse_timer_2 = effect_timer
             elif mystery_box_effect == "speed_up_1":
-                player_1.speed *= 2
-                player_1_speed_timer = effect_timer
+                if effect_run_one:
+                    player_1.speed *= 3
+                    player_1_speed_timer = effect_timer
+                    effect_run_one = False
             elif mystery_box_effect == "speed_up_2":
-                player_2.speed *= 2
-                player_2_speed_timer = effect_timer
+                if effect_run_one:
+                    player_2.speed *= 3
+                    player_2_speed_timer = effect_timer
+                    effect_run_one = False
             elif mystery_box_effect == "ball_size":
                 ball_new_size = 100
                 ball_size_timer = effect_timer
