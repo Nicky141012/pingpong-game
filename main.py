@@ -1,6 +1,7 @@
 from pygame import *
 import pygame
 import random
+
 pygame.init()
 win_width = 700
 win_height = 500
@@ -24,6 +25,11 @@ class Player(GameSprite):
     def __init__(self, player_image, player_x, player_y, player_speed, size_x, size_y):
         super().__init__(player_image, player_x, player_y, player_speed, size_x, size_y)
         self.score = 0
+        self.visible = True  # Add visibility attribute
+
+    def reset(self):
+        if self.visible:  # Only draw if visible
+            window.blit(self.image, (self.rect.x, self.rect.y))
 
     def update_leftplayer(self):
         keys = key.get_pressed()
@@ -66,6 +72,7 @@ class Player(GameSprite):
                 self.rect.y += self.speed
                 if self.rect.y >= win_height - 145:
                     self.rect.y = win_height - 145
+
 window = display.set_mode((win_width, win_height))
 display.set_caption("Ping Pong Game")
 background = transform.scale(image.load(img_background), (win_width, win_height))
@@ -85,6 +92,7 @@ effect_timer = 0
 effect_duration = 5 * 60  # 5 seconds in frames
 original_ball_speed_x = ball_speedx
 original_ball_speed_y = ball_speedy
+effect_run_one = False
 
 # Meme picture (replace with your image file path)
 try:
@@ -121,7 +129,6 @@ player_2_speed_timer = 0
 ball_size_timer = 0
 ball_original_size = 50
 ball_new_size = 50
-effect_run_one = False
 
 while game:
     for e in event.get():
@@ -190,7 +197,7 @@ while game:
         if mystery_box_active and mystery_box_rect.collidepoint(ball_center):
             mystery_box_active = False
             mystery_box_triggered = True
-            mystery_box_effect = random.choice(["speed", "speed_up_1","speed_up_2"])
+            mystery_box_effect = random.choice(["speed", "disappear", "meme", "reverse_controls_1", "reverse_controls_2", "speed_up_1","speed_up_2", "ball_size"])
             print(mystery_box_effect)
             effect_timer = effect_duration
             original_ball_speed_x = ball_speedx
@@ -205,8 +212,8 @@ while game:
                     ball_speedy *= 2
                     effect_run_one = False
             elif mystery_box_effect == "disappear":
-                player_1.rect.width = 0
-                player_2.rect.width = 0
+                player_1.visible = False
+                player_2.visible = False
             elif mystery_box_effect == "reverse_controls_1":
                 player_1.reverse_controls = True
                 reverse_timer_1 = effect_timer
@@ -228,14 +235,17 @@ while game:
                 ball_size_timer = effect_timer
                 ball.image = transform.scale(image.load("./assets/tenis_ball.png"), (ball_new_size, ball_new_size))
                 ball.rect = ball.image.get_rect(center=ball.rect.center)
+            elif mystery_box_effect == "meme" and meme_image:
+                meme_scaled = transform.scale(meme_image, (win_width, win_height))
+                window.blit(meme_scaled, (0, 0))
             effect_timer -= 1
         elif mystery_box_triggered and effect_timer <= 0:
             if mystery_box_effect == "speed":
                 ball_speedx = original_ball_speed_x
                 ball_speedy = original_ball_speed_y
             elif mystery_box_effect == "disappear":
-                player_1.rect.width = 50
-                player_2.rect.width = 50
+                player_1.visible = True
+                player_2.visible = True
             elif mystery_box_effect == "reverse_controls_1":
                 player_1.reverse_controls = False
             elif mystery_box_effect == "reverse_controls_2":
@@ -253,6 +263,7 @@ while game:
             mystery_box_x = random.randint(100, win_width - 100)
             mystery_box_y = random.randint(100, win_height - 200)
             mystery_box_active = True
+            effect_run_one = False
 
         # Draw Mystery box
         if mystery_box_active:
@@ -261,12 +272,11 @@ while game:
             else:
                 draw.rect(window, (255, 255, 0), (mystery_box_x, mystery_box_y, mystery_box_width, mystery_box_height))
 
-        # Draw meme
-        if mystery_box_triggered and mystery_box_effect == "meme" and meme_image:
-            window.blit(meme_image, (win_width // 2 - 150, win_height // 2 - 150))
+        # Don't draw normal game elements if meme is active
+        if not (mystery_box_triggered and mystery_box_effect == "meme"):
+            ball.reset()
+            player_1.reset()
+            player_2.reset()
 
-        ball.reset()
-        player_1.reset()
-        player_2.reset()
         display.update()
         clock.tick(FPS)
