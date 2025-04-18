@@ -115,6 +115,53 @@ finish = False
 clock = time.Clock()
 FPS = 60
 
+def show__waiting_screen():
+    window.blit(background, (0,0))
+    title_font = pygame.font.Font(None, 72)
+    text_font = pygame.font.Font(None, 36)
+    title_text = title_font.render("Ping Pong Game", True, (0,0,0))
+
+    promt_text = text_font.render("Press space start to play the game now!", True, (0,0,0))
+    window.blit(title_text, (150,200))
+    window.blit(promt_text, (130, 300))
+
+    while True:
+        for e in event.get():
+            if e.type == QUIT:
+                global game
+                game = False
+                break
+        keys =key.get_pressed()
+        if keys[K_SPACE]:
+            break
+        display.update()
+def show_winner(player):
+        window.blit(background, (0,0))
+        title_font = pygame.font.Font(None, 72)
+        text_font = pygame.font.Font(None, 36)
+        title_text = title_font.render(player + ' is the winer!!!!!' , True, (0,0,0))
+
+        promt_text = text_font.render("Press space to restart a game!", True, (0,0,0))
+        window.blit(title_text, (100,200))
+        window.blit(promt_text, (170, 300))
+
+        while True:
+            for e in event.get():
+                if e.type == QUIT:
+                    global game
+                    game = False
+                    break
+            keys =key.get_pressed()
+            if keys[K_SPACE]:
+                global player_1
+                global player_2
+                global fresh_start
+                fresh_start = True
+                player_1.score = 0
+                player_2.score = 0
+                break 
+            display.update()
+       
 def draw_ui(x, y, score):
     my_font = font.Font(None, 36)
     text = my_font.render("Score:" + str(score), 1, (255, 255, 255))
@@ -129,12 +176,16 @@ player_2_speed_timer = 0
 ball_size_timer = 0
 ball_original_size = 50
 ball_new_size = 50
+fresh_start = True
+
+show__waiting_screen()
 
 while game:
     for e in event.get():
         if e.type == QUIT:
             game = False
     if finish != True:
+
         window.blit(background, (0, 0))
         player_1.update_rightplayer()
         player_2.update_leftplayer()
@@ -190,6 +241,10 @@ while game:
             ball.rect.y = 200
             ball_speedx *= -1
             print("Player 2 score 1 point:", player_2.score)
+        if player_1.score >= 5:
+            show_winner("Player 1")
+        elif player_2.score >= 5:
+            show_winner("Player 2")
 
         # Ball collision with mystery box (using ball center collision)
         ball_center = ball.rect.center
@@ -277,6 +332,10 @@ while game:
             ball.reset()
             player_1.reset()
             player_2.reset()
+        if fresh_start:
+            display.update()
+            pygame.time.delay(3000)
+            fresh_start =False
 
         display.update()
         clock.tick(FPS)
