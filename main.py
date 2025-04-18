@@ -1,6 +1,7 @@
 from pygame import *
 import pygame
 import random
+import time as timeModule
 
 pygame.init()
 win_width = 700
@@ -72,6 +73,44 @@ class Player(GameSprite):
                 self.rect.y += self.speed
                 if self.rect.y >= win_height - 145:
                     self.rect.y = win_height - 145
+
+class Area():
+    '''
+    Making a rect area in the screen with some functionality
+    1. Function.color: => change the self.fill_color of the class
+    2. Function.fill: => do fill the area with the color property
+    3. Function.outline: => Creat the border for the area
+    4. Function.collidepoint => Check the position is inside the area yes or no
+    '''
+    
+    def __init__(self, x=0, y=0, width=10, height=10, color=None):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.fill_color = color
+
+    def color(self, new_color):
+        self.fill_color = new_color # changing the color
+
+    def fill(self):
+        pygame.draw.rect(window, self.fill_color, self.rect)
+
+    def outline(self, frame_color, thickness):
+        pygame.draw.rect(window, frame_color, self.rect, thickness)
+
+    def collidepoint(self, x, y):
+        return self.rect.collidepoint(x, y)
+
+class Label(Area): # Lable class is inherited the Area class.
+    '''
+    1. Function set_text: => Set the text inside the area wich percific position
+    2. Function draw: => Make it appear in the screen on percific position
+
+    '''
+    def set_text(self, text, fsize=12, text_color=(0, 0, 0)):
+        self.image = pygame.font.SysFont('Verdana', fsize).render(text, True, text_color)
+
+    def draw(self, shift_x=0, shift_y=0):
+        self.fill()
+        window.blit(self.image, (self.rect.x + shift_x, self.rect.y + shift_y))
 
 window = display.set_mode((win_width, win_height))
 display.set_caption("Ping Pong Game")
@@ -161,6 +200,17 @@ def show_winner(player):
                 player_2.score = 0
                 break 
             display.update()
+
+def draw_round(round):
+        title_font = pygame.font.Font(None, 72)
+        text_font = pygame.font.Font(None, 36)
+        title_text = title_font.render("Round"  + str(round) , True, (0,0,0))
+
+        promt_text = text_font.render("Ready?",True, (0,0,0))
+        window.blit(title_text, (100,200))
+        window.blit(promt_text, (170, 300))
+    
+
        
 def draw_ui(x, y, score):
     my_font = font.Font(None, 36)
@@ -177,9 +227,12 @@ ball_size_timer = 0
 ball_original_size = 50
 ball_new_size = 50
 fresh_start = True
+pause_time = 3
+round = 1
+
 
 show__waiting_screen()
-
+start_time = timeModule.time()
 while game:
     for e in event.get():
         if e.type == QUIT:
@@ -192,9 +245,14 @@ while game:
 
         draw_ui(0, 5, player_1.score)
         draw_ui(win_width - 100, 5, player_2.score)
-
-        ball.rect.x += ball_speedx
-        ball.rect.y += ball_speedy
+        if timeModule.time() - start_time > 3:
+            fresh_start = False
+        
+        if not  fresh_start:
+            ball.rect.x += ball_speedx
+            ball.rect.y += ball_speedy
+        else:
+            draw_round(round)
 
         # Limit ball speed
         max_speed = 10  # Adjust as needed
@@ -234,13 +292,21 @@ while game:
             ball.rect.x = 200
             ball.rect.y = 200
             ball_speedx *= -1
+            fresh_start =True
+            pause_time = 2
+            start_time = timeModule.time()
             print("Player 1 score 1 point:", player_1.score)
+            round += 1
         elif ball.rect.x < player_1.rect.x: # pass left player
             player_2.score += 1
             ball.rect.x = 200
             ball.rect.y = 200
             ball_speedx *= -1
+            fresh_start =True
+            pause_time = 2
+            start_time = timeModule.time()
             print("Player 2 score 1 point:", player_2.score)
+            round += 1            
         if player_1.score >= 5:
             show_winner("Player 1")
         elif player_2.score >= 5:
@@ -332,10 +398,7 @@ while game:
             ball.reset()
             player_1.reset()
             player_2.reset()
-        if fresh_start:
-            display.update()
-            pygame.time.delay(3000)
-            fresh_start =False
+
 
         display.update()
         clock.tick(FPS)
