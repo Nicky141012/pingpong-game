@@ -202,14 +202,12 @@ def show_winner(player):
             display.update()
 
 def draw_round(round):
-        title_font = pygame.font.Font(None, 72)
-        text_font = pygame.font.Font(None, 36)
-        title_text = title_font.render("Round"  + str(round) , True, (0,0,0))
+        round_text = Label(0,0,700,500,(0,0,0))
+        round_text.set_text("Round"  + str(round) , 20, (255,255,255))
+        round_text.draw(10,10)
+        round_text.fill()
 
-        promt_text = text_font.render("Ready?",True, (0,0,0))
-        window.blit(title_text, (100,200))
-        window.blit(promt_text, (170, 300))
-    
+
 
        
 def draw_ui(x, y, score):
@@ -251,8 +249,6 @@ while game:
         if not  fresh_start:
             ball.rect.x += ball_speedx
             ball.rect.y += ball_speedy
-        else:
-            draw_round(round)
 
         # Limit ball speed
         max_speed = 10  # Adjust as needed
@@ -398,6 +394,10 @@ while game:
             ball.reset()
             player_1.reset()
             player_2.reset()
+        if  fresh_start:
+            draw_round(round)
+
+
 
 
         display.update()
